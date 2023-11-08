@@ -1,25 +1,82 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useState,useReducer } from "react";
 import './login.css'
-function Login(){
-  let username = useRef();
-  let password = useRef();
-  function handleUsernameClick(event){
-    console.log(event.target.value)
+
+let emailreducer = (state, action) => {
+  switch (action.type) {
+    case 'email_input':
+      return {value:action.val, emailValid:undefined}
+    case "email_validate":
+      return {value:action.val, emailValid:action.val.includes('@')}
   }
-  function handlePasswordClick(event){
-    console.log(event.target.value)
+};
+
+let passreducer = (state, action) => {
+  switch (action.type) {
+    case 'password_input':
+      return {value:action.val, passvalid:undefined}
+    case 'password_validate':
+      return {value:action.val, passvalid:action.val.trim().length>=8}
   }
+};
+
+function Login(props){
+  // let [enteredEmail, setenteredEmail] = useState('');
+  // let [enteredPassword, setenteredPassword] = useState('');
+  // let [emailValid, setemailValid] = useState();
+  // let [passwordValid, setpasswordValid] = useState();
+  let [formValid, setformValid] = useState(false);
+
+  const [emailState, emaildispatcher] = useReducer(emailreducer, {value:'', emailValid:undefined});
+  const [passstate, passdispatcher] = useReducer(passreducer, {value:'', passvalid:undefined});
+  
+  useEffect(() => {
+    let timeout = setTimeout(() => {
+      setformValid(emailState.value.includes('@') && passstate.value.trim().length >=8)
+      
+    }, 1500);
+    return () => {
+      clearTimeout(timeout)
+    };
+    /* In the above case, setTimeout first sets the time to execute the function inside it
+    ... it sets the time equal to 1500 to validate the form then when the letter is clicked
+    the state is updated then the return function will be executed then the time is cleared.
+    Then sets another time. As a whole it is the clear and set mechanism*/
+  }, [emailState.emailValid, passstate.passvalid]);
+
+  function changeEmail(event){
+    emaildispatcher({val:event.target.value, type:'email_input'})
+  }
+
+  function validateEmail(){
+    emaildispatcher({val:emailState.value, type:'email_validate'})
+
+  }
+  function changePassword(event){
+    passdispatcher({val:event.target.value, type:'password_input'})
+  }
+  
+  function validatepassword(){
+    passdispatcher({val:passstate.value, type:'password_validate'})
+  }
+
     return (
-        // <h2>This is my login page</h2>
+      <>
       <div className="login-container">
         <form className="login-form">
           <h2>Login</h2>
-          <input type="text" placeholder="Username" ref={username} onChange={handleUsernameClick} />
-          <input type="password" placeholder="Password" ref={password} onChange={handlePasswordClick}/>
-          <button type="submit">Login</button>
+          <input 
+              type="text" 
+              className={`form-control ${emailState.emailValid===false ? 'is-invalid' : ''}`} 
+              placeholder="Email" 
+              onChange={changeEmail} 
+              onBlur={validateEmail}/>
+          <input type="password"  className={`form-control ${passstate.passvalid===false ? 'is-invalid' : ''}`}   placeholder="Password" onChange={changePassword} onBlur={validatepassword}/>
+          <button type="submit" disabled={!formValid}>Login</button>
         </form>
       </div>
+      </>
     )
     
 }
+
 export default Login;
