@@ -37,10 +37,7 @@ function Login(props){
     return () => {
       clearTimeout(timeout)
     };
-    /* In the above case, setTimeout first sets the time to execute the function inside it
-    ... it sets the time equal to 1500 to validate the form then when the letter is clicked
-    the state is updated then the return function will be executed then the time is cleared.
-    Then sets another time. As a whole it is the clear and set mechanism*/
+    
   }, [emailState.emailValid, passstate.passvalid]);
 
   function changeEmail(event){
