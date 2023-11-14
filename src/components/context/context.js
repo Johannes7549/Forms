@@ -1,4 +1,2 @@
-import React from "react";
-let AuthContext = React.createcontext({})
-
-export default AuthContext
+import react from 'react';
+let AuthContext = React.createContext();

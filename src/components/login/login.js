@@ -1,5 +1,7 @@
 import React, { useEffect, useState,useReducer } from "react";
 import './login.css'
+import {auth} from '../../config/firebase';
+import {createUserWithEmailAndPassword} from 'firebase/auth'
 
 let emailreducer = (state, action) => {
   switch (action.type) {
@@ -13,10 +15,10 @@ let emailreducer = (state, action) => {
 let passreducer = (state, action) => {
   switch (action.type) {
     case 'password_input':
-      return {value:action.val, passvalid:undefined}
-    case 'password_validate':
-      return {value:action.val, passvalid:action.val.trim().length>=8}
+      return {value:action.val, passvalid:action.val.trim().length>8}
+
   }
+
 };
 
 function Login(props){
@@ -28,16 +30,9 @@ function Login(props){
 
   const [emailState, emaildispatcher] = useReducer(emailreducer, {value:'', emailValid:undefined});
   const [passstate, passdispatcher] = useReducer(passreducer, {value:'', passvalid:undefined});
-  
+
   useEffect(() => {
-    let timeout = setTimeout(() => {
-      setformValid(emailState.value.includes('@') && passstate.value.trim().length >=8)
-      
-    }, 1500);
-    return () => {
-      clearTimeout(timeout)
-    };
-    
+    setformValid(emailState.emailValid && passstate.passvalid)
   }, [emailState.emailValid, passstate.passvalid]);
 
   function changeEmail(event){
@@ -46,29 +41,42 @@ function Login(props){
 
   function validateEmail(){
     emaildispatcher({val:emailState.value, type:'email_validate'})
-
   }
+
   function changePassword(event){
     passdispatcher({val:event.target.value, type:'password_input'})
   }
   
-  function validatepassword(){
-    passdispatcher({val:passstate.value, type:'password_validate'})
+  // function validatepassword(){
+  //   passdispatcher({val:passstate.value, type:'password_validate'})
+  // }
+
+  async function submitHandler(event){  
+    event.preventDefault();
+      try {
+          console.log(emailState.value, passstate.value);
+          return await createUserWithEmailAndPassword(auth, emailState.value, passstate.value);
+      } catch (error) {
+          console.error(error);
+      }
+  
+    
   }
 
     return (
       <>
       <div className="login-container">
-        <form className="login-form">
+        <form className="login-form" onSubmit={submitHandler}>
           <h2>Login</h2>
           <input 
               type="text" 
               className={`form-control ${emailState.emailValid===false ? 'is-invalid' : ''}`} 
               placeholder="Email" 
               onChange={changeEmail} 
-              onBlur={validateEmail}/>
-          <input type="password"  className={`form-control ${passstate.passvalid===false ? 'is-invalid' : ''}`}   placeholder="Password" onChange={changePassword} onBlur={validatepassword}/>
-          <button type="submit" disabled={!formValid}>Login</button>
+              onBlur={validateEmail}
+              value={emailState.value}/>
+          <input type="password" id="password" value={passreducer.value} className={`form-control ${passstate.passvalid===false ? 'is-invalid' : ''}`}   placeholder="Password" onChange={changePassword} />
+          <button type="submit">Login</button>
         </form>
       </div>
       </>
